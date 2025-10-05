@@ -23,7 +23,7 @@ La solución se diseñó bajo el enfoque **medallion (Bronze–Silver–Gold)** 
 | **Consumo** | Dashboards interactivos para Pricing, Marketing ROI e Inventario | Power BI |
 
 ### 📊 Diagrama de arquitectura
-![Arquitectura Lakehouse QAPITAL](QATAR%20ARQUITECTURA.png)
+![Arquitectura Lakehouse QAPITAL](Imagenes/QATAR_ARQUITECTURA.png)
 
 ---
 
@@ -35,13 +35,14 @@ El modelo final está compuesto por **hechos y dimensiones**, optimizado para an
 - **Dimensiones:** `dim_clients`, `dim_brokers`, `dim_properties`, `dim_projects`, `dim_campaigns`
 
 ### 📘 Relaciones entre tablas
-![Modelo relacional](aef27f6a-6e07-4f60-9e3b-2623790f0261.png)
+![Modelo relacional](Imagenes/Esquema.png)
 
 ---
 
 ## 🔄 Pipeline de orquestación
 
 El **pipeline principal** gestiona la ejecución automática del flujo completo:
+![Modelo relacional](Imagenes/Pipeline.png)
 
 1. Extracción desde ADLS Gen2  
 2. Transformación en tres notebooks (Bronze → Silver → Gold)  
