@@ -1,0 +1,258 @@
+{
+    "name": "PIPELINE_001_PROYECTO_RCR",
+    "objectId": "974db788-1993-4987-b28c-24a0cb4ec9a7",
+    "properties": {
+        "activities": [
+            {
+                "name": "CP_EXTRACT_ADLS",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "BinarySource",
+                        "storeSettings": {
+                            "type": "AzureBlobFSReadSettings",
+                            "recursive": true
+                        },
+                        "formatSettings": {
+                            "type": "BinaryReadSettings"
+                        },
+                        "datasetSettings": {
+                            "annotations": [],
+                            "type": "Binary",
+                            "typeProperties": {
+                                "location": {
+                                    "type": "AzureBlobFSLocation",
+                                    "folderPath": "raw_data",
+                                    "fileSystem": "realstate"
+                                }
+                            },
+                            "externalReferences": {
+                                "connection": "22387f98-a8bd-4de7-8b96-81163c5b197c"
+                            }
+                        }
+                    },
+                    "sink": {
+                        "type": "BinarySink",
+                        "storeSettings": {
+                            "type": "LakehouseWriteSettings"
+                        },
+                        "datasetSettings": {
+                            "annotations": [],
+                            "linkedService": {
+                                "name": "LK_QAPITAL_PY_001",
+                                "properties": {
+                                    "annotations": [],
+                                    "type": "Lakehouse",
+                                    "typeProperties": {
+                                        "workspaceId": "bf97509c-24e8-407c-9daf-15572200b07d",
+                                        "artifactId": "c4c2e349-9d92-4ffa-a0ec-941cf2dcdfbe",
+                                        "rootFolder": "Files"
+                                    }
+                                }
+                            },
+                            "type": "Binary",
+                            "typeProperties": {
+                                "location": {
+                                    "type": "LakehouseLocation",
+                                    "folderPath": "Raw"
+                                }
+                            }
+                        }
+                    },
+                    "enableStaging": false
+                }
+            },
+            {
+                "name": "NTB_RAW_SILVER",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "CP_EXTRACT_ADLS",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "bd37a4ac-1639-45b8-90de-d32419880c8a",
+                    "workspaceId": "bf97509c-24e8-407c-9daf-15572200b07d"
+                }
+            },
+            {
+                "name": "SM_PROYECTO",
+                "type": "PBISemanticModelRefresh",
+                "dependsOn": [
+                    {
+                        "activity": "NTB_GOLD_DW",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "method": "post",
+                    "waitOnCompletion": true,
+                    "commitMode": "Transactional",
+                    "operationType": "SemanticModelRefresh",
+                    "groupId": "bf97509c-24e8-407c-9daf-15572200b07d",
+                    "datasetId": "b15d456b-b306-4a93-bc85-529021fc4ba8",
+                    "objects": [
+                        {
+                            "table": "dim_properties"
+                        },
+                        {
+                            "table": "dim_clientes"
+                        },
+                        {
+                            "table": "fact_sales"
+                        },
+                        {
+                            "table": "dim_campaigns"
+                        },
+                        {
+                            "table": "dim_brokers"
+                        },
+                        {
+                            "table": "fact_leads"
+                        },
+                        {
+                            "table": "dim_projects"
+                        }
+                    ]
+                },
+                "externalReferences": {
+                    "connection": "48069528-0863-4ccd-9531-4b2cd628e115"
+                }
+            },
+            {
+                "name": "Correo exitoso",
+                "type": "Office365Outlook",
+                "dependsOn": [
+                    {
+                        "activity": "SM_PROYECTO",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "inputs": {
+                        "method": "post",
+                        "path": "/v2/Mail",
+                        "body": {
+                            "To": "RicardoJesusChariarseRojas@datapathdap.onmicrosoft.com",
+                            "Subject": "Ejecución pipeline",
+                            "Body": "<p>Se ha realizado correctamente la ejecución del pipeline</p>",
+                            "Sensitivity": "",
+                            "Importance": "Normal"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "Correo fallo",
+                "type": "Office365Outlook",
+                "dependsOn": [
+                    {
+                        "activity": "SM_PROYECTO",
+                        "dependencyConditions": [
+                            "Failed"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "inputs": {
+                        "method": "post",
+                        "path": "/v2/Mail",
+                        "body": {
+                            "To": "RicardoJesusChariarseRojas@datapathdap.onmicrosoft.com",
+                            "Subject": "Fallo pipeline",
+                            "Body": "<p>Ha fallado la ejecución del pipeline</p>",
+                            "Sensitivity": "",
+                            "Importance": "Normal"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "NTB_SILVER_GOLD",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "NTB_RAW_SILVER",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "95ac3887-8018-4e01-bbe9-faf88209e765",
+                    "workspaceId": "bf97509c-24e8-407c-9daf-15572200b07d"
+                }
+            },
+            {
+                "name": "NTB_GOLD_DW",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "NTB_SILVER_GOLD",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "51ffaab9-a051-4b6e-806d-a56057018ddf",
+                    "workspaceId": "bf97509c-24e8-407c-9daf-15572200b07d"
+                }
+            }
+        ],
+        "lastModifiedByObjectId": "a00c5a29-4191-47b6-b37a-6e9ff23293f0",
+        "lastPublishTime": "2025-10-02T21:52:16Z",
+        "logicAppsConnectionPayload": {
+            "id": "/subscriptions/92f3a71d-1503-4319-8dcb-23fd8e43f288/resourceGroups/connections-bf97509c-24e8-407c-9daf-15572200b07d/providers/Microsoft.Web/connections/1_974db788-1993-4987-b28c-24a0cb4ec9a7_a00c5a29-4191-47b6-b37a-6e9ff23293f0",
+            "properties": {
+                "api": {
+                    "name": "office365",
+                    "id": "/subscriptions/92f3a71d-1503-4319-8dcb-23fd8e43f288/providers/Microsoft.Web/locations/southcentralus/managedApis/office365"
+                }
+            }
+        }
+    }
+}
