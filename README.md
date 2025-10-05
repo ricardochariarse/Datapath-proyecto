@@ -69,26 +69,7 @@ El archivo JSON del pipeline y los notebooks se encuentran en este repositorio p
 
 - Reducción del *time-to-insight* de **48 h a 3 h**  
 - Vista unificada del inventario inmobiliario y campañas  
-- Capacidad de ajustar inversiones de marketing de forma diaria  
+- Capacidad de revisar los reportes de forma diaria  
 - Gobernanza completa sobre datos personales y trazabilidad de procesos  
 
 ---
-
-## 📂 Estructura del repositorio
-
-```bash
-📁 QAPITAL-Lakehouse-Fabric
-│
-├── notebooks/
-│   ├── 01_Bronze_to_Silver.ipynb
-│   ├── 02_Silver_to_Gold.ipynb
-│   └── 03_Model_Update.ipynb
-│
-├── pipeline/
-│   └── pipeline_qapital.json
-│
-├── images/
-│   ├── arquitectura.png
-│   └── modelo_relacional.png
-│
-└── README.md
